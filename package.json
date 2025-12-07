@@ -38,12 +38,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/telegraph-js.git"
+    "url": "git+https://github.com/NehoraiHadad/telegraph-js.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/telegraph-js/issues"
+    "url": "https://github.com/NehoraiHadad/telegraph-js/issues"
   },
-  "homepage": "https://github.com/yourusername/telegraph-js#readme",
+  "homepage": "https://github.com/NehoraiHadad/telegraph-js#readme",
   "engines": {
     "node": ">=18.0.0"
   },
