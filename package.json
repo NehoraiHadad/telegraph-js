@@ -1,0 +1,53 @@
+{
+  "name": "telegraph-api-client",
+  "version": "1.0.0",
+  "description": "A TypeScript client for the Telegraph API with full type safety and zero dependencies",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist-cjs/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "dist-cjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc && npm run build:cjs",
+    "build:cjs": "tsc --module commonjs --outDir dist-cjs && node scripts/post-build.js",
+    "clean": "rm -rf dist dist-cjs",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "telegraph",
+    "telegra.ph",
+    "api",
+    "client",
+    "typescript",
+    "publishing",
+    "blogging"
+  ],
+  "author": "Telegraph API Client Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/telegraph-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/telegraph-js/issues"
+  },
+  "homepage": "https://github.com/yourusername/telegraph-js#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
