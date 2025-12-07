@@ -5,6 +5,16 @@
 
 A complete TypeScript client for the [Telegraph API](https://telegra.ph/api) with full type safety and zero runtime dependencies.
 
+## Related Projects
+
+This is part of the Telegraph tools ecosystem:
+
+| Project | Description | Package |
+|---------|-------------|---------|
+| [telegraph-mcp](https://github.com/NehoraiHadad/telegraph-mcp) | MCP Server for AI assistants | [![npm](https://img.shields.io/npm/v/telegraph-mcp)](https://www.npmjs.com/package/telegraph-mcp) |
+| **telegraph-api-client** (this) | JavaScript/TypeScript library | [![npm](https://img.shields.io/npm/v/telegraph-api-client)](https://www.npmjs.com/package/telegraph-api-client) |
+| [telegraph-py](https://github.com/NehoraiHadad/telegraph-py) | Python library | [![PyPI](https://img.shields.io/pypi/v/telegraph-api-py)](https://pypi.org/project/telegraph-api-py/) |
+
 ## Features
 
 - **Full TypeScript Support** - Comprehensive type definitions for all API methods
@@ -13,6 +23,9 @@ A complete TypeScript client for the [Telegraph API](https://telegra.ph/api) wit
 - **ESM & CommonJS** - Works with both module systems
 - **Simple API** - Clean, promise-based interface
 - **Complete Coverage** - All 9 Telegraph API methods implemented
+- **Image Upload** - Upload images and videos to Telegraph
+- **Templates** - Pre-built templates for common content types
+- **Export & Backup** - Export pages to Markdown/HTML and backup accounts
 
 ## Installation
 
@@ -290,6 +303,125 @@ import { parseContent } from 'telegraph-api-client';
 const nodes1 = parseContent('<p>HTML</p>');
 const nodes2 = parseContent('# Markdown', 'markdown');
 const nodes3 = parseContent([{ tag: 'p', children: ['Array'] }]);
+```
+
+### nodesToJson(nodes: Node[]): (string | object)[]
+
+Converts Node array to JSON-serializable format:
+
+```typescript
+import { nodesToJson } from 'telegraph-api-client';
+
+const json = nodesToJson([{ tag: 'p', children: ['Hello'] }]);
+// Returns: [{ tag: 'p', children: ['Hello'] }]
+```
+
+### nodesToMarkdown(nodes: Node[]): string
+
+Converts Node array back to Markdown:
+
+```typescript
+import { nodesToMarkdown } from 'telegraph-api-client';
+
+const markdown = nodesToMarkdown(page.content);
+```
+
+### nodesToHtml(nodes: Node[]): string
+
+Converts Node array back to HTML:
+
+```typescript
+import { nodesToHtml } from 'telegraph-api-client';
+
+const html = nodesToHtml(page.content);
+```
+
+## Image Upload
+
+Upload images and videos to Telegraph:
+
+```typescript
+// Upload from file path
+const result = await telegraph.uploadImage({
+  filePath: './image.jpg'
+});
+console.log(`Uploaded: ${result.url}`);
+
+// Upload from base64
+const result = await telegraph.uploadImage({
+  base64: 'iVBORw0KGgo...',
+  contentType: 'image/png',
+  filename: 'image.png'
+});
+```
+
+Supported formats: JPEG, PNG, GIF, MP4
+
+## Templates
+
+Use pre-built templates for common content types:
+
+```typescript
+import { listTemplates, createFromTemplate, htmlToNodes } from 'telegraph-api-client';
+
+// List available templates
+const templates = listTemplates();
+// Returns: blog_post, documentation, article, changelog, tutorial
+
+// Create content from template
+const nodes = createFromTemplate('blog_post', {
+  title: 'My Blog Post',
+  intro: 'This is the introduction',
+  sections: [
+    { heading: 'Section 1', content: 'First section content' },
+    { heading: 'Section 2', content: 'Second section content' }
+  ],
+  conclusion: 'Final thoughts'
+});
+
+// Use in createPage
+const page = await telegraph.createPage({
+  accessToken: token,
+  title: 'My Blog Post',
+  content: nodes
+});
+```
+
+### Available Templates
+
+| Template | Required Fields | Optional Fields |
+|----------|-----------------|-----------------|
+| `blog_post` | title, intro, sections[] | conclusion |
+| `documentation` | title, overview | installation, usage, api_reference[] |
+| `article` | title, body[] | subtitle |
+| `changelog` | title, version, date | added[], changed[], fixed[] |
+| `tutorial` | title, description, steps[] | prerequisites[], conclusion |
+
+## Export & Backup
+
+Export pages to Markdown or HTML, and backup entire accounts:
+
+```typescript
+import { exportPage, backupAccount } from 'telegraph-api-client';
+
+// Export a single page
+const exported = await exportPage({
+  path: 'My-Page-12-15',
+  format: 'markdown'  // or 'html'
+});
+console.log(exported.content);
+
+// Backup all pages from an account
+const backup = await backupAccount({
+  accessToken: 'your-token',
+  format: 'markdown',
+  limit: 100  // max pages to export
+});
+
+console.log(`Exported ${backup.exported_count} of ${backup.total_count} pages`);
+backup.pages.forEach(page => {
+  console.log(`${page.title}: ${page.content.substring(0, 100)}...`);
+});
 ```
 
 ## Error Handling

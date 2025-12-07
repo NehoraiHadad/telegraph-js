@@ -7,7 +7,14 @@
 
 export { Telegraph } from './client.js';
 export { TelegraphError } from './errors.js';
-export { htmlToNodes, markdownToHtml, parseContent } from './utils.js';
+export {
+  htmlToNodes,
+  markdownToHtml,
+  parseContent,
+  nodesToJson,
+  nodesToMarkdown,
+  nodesToHtml,
+} from './utils.js';
 export type {
   Account,
   Page,
@@ -27,5 +34,25 @@ export type {
   GetPageParams,
   GetPageListParams,
   GetViewsParams,
+  UploadImageParams,
+  UploadResult,
 } from './types.js';
 export { ALLOWED_TAGS } from './types.js';
+export {
+  exportPage,
+  backupAccount
+} from './export.js';
+export type {
+  ExportedPage,
+  AccountBackup
+} from './export.js';
+export {
+  getTemplate,
+  listTemplates,
+  createFromTemplate,
+  templates,
+} from './templates.js';
+export type {
+  Template,
+  TemplateField,
+} from './templates.js';

@@ -5,6 +5,8 @@
 
 import { TelegraphError } from './errors.js';
 import { parseContent } from './utils.js';
+import { readFile } from 'node:fs/promises';
+import { basename, extname } from 'node:path';
 import type {
   Account,
   Page,
@@ -20,9 +22,12 @@ import type {
   GetPageParams,
   GetPageListParams,
   GetViewsParams,
+  UploadImageParams,
+  UploadResult,
 } from './types.js';
 
 const BASE_URL = 'https://api.telegra.ph';
+const UPLOAD_URL = 'https://telegra.ph/upload';
 
 /**
  * Telegraph API Client class
@@ -345,5 +350,101 @@ export class Telegraph {
       day: params.day,
       hour: params.hour,
     });
+  }
+
+  /**
+   * Get content type from file extension
+   *
+   * @param filePath - Path to the file
+   * @returns Content type string
+   */
+  private getContentType(filePath: string): string {
+    const ext = extname(filePath).toLowerCase();
+    const types: Record<string, string> = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.mp4': 'video/mp4',
+    };
+    return types[ext] || 'application/octet-stream';
+  }
+
+  /**
+   * Upload image or video to Telegraph
+   *
+   * @param params - Upload parameters (either filePath or base64 + contentType + filename)
+   * @returns Upload result with URL
+   *
+   * @example
+   * ```typescript
+   * // Upload from file path
+   * const result = await telegraph.uploadImage({
+   *   filePath: '/path/to/image.jpg'
+   * });
+   * console.log(`Uploaded: ${result.url}`);
+   *
+   * // Upload from base64
+   * const result2 = await telegraph.uploadImage({
+   *   base64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+   *   contentType: 'image/png',
+   *   filename: 'test.png'
+   * });
+   * console.log(`Uploaded: ${result2.url}`);
+   * ```
+   */
+  async uploadImage(params: UploadImageParams): Promise<UploadResult> {
+    let fileData: Buffer;
+    let filename: string;
+    let contentType: string;
+
+    if (params.filePath) {
+      // Upload from file path
+      fileData = await readFile(params.filePath);
+      filename = basename(params.filePath);
+      contentType = this.getContentType(params.filePath);
+    } else if (params.base64 && params.contentType && params.filename) {
+      // Upload from base64
+      fileData = Buffer.from(params.base64, 'base64');
+      filename = params.filename;
+      contentType = params.contentType;
+    } else {
+      throw new TelegraphError(
+        'Either filePath or (base64 + contentType + filename) must be provided'
+      );
+    }
+
+    // Create FormData for upload
+    const formData = new FormData();
+    const arrayBuffer = fileData.buffer.slice(
+      fileData.byteOffset,
+      fileData.byteOffset + fileData.byteLength
+    ) as ArrayBuffer;
+    const blob = new Blob([arrayBuffer], { type: contentType });
+    formData.append('file', blob, filename);
+
+    // Upload to Telegraph
+    const response = await fetch(UPLOAD_URL, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new TelegraphError(`Upload failed: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json() as { src?: string; error?: string }[];
+
+    if (result[0]?.error) {
+      throw new TelegraphError(`Upload error: ${result[0].error}`);
+    }
+
+    if (!result[0]?.src) {
+      throw new TelegraphError('Upload failed: No source returned');
+    }
+
+    return {
+      url: `https://telegra.ph${result[0].src}`,
+    };
   }
 }

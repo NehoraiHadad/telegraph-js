@@ -256,3 +256,143 @@ export function parseContent(content: string | Node[], format: 'html' | 'markdow
   // Convert HTML to nodes
   return htmlToNodes(htmlContent);
 }
+
+/**
+ * Convert Telegraph Node array to JSON-serializable format
+ *
+ * @param nodes - Array of Telegraph Node objects
+ * @returns JSON-serializable array of strings and objects
+ */
+export function nodesToJson(nodes: Node[]): (string | object)[] {
+  return nodes.map(node => {
+    if (typeof node === 'string') return node;
+    const result: Record<string, any> = { tag: node.tag };
+    if (node.attrs && Object.keys(node.attrs).length > 0) result.attrs = node.attrs;
+    if (node.children && node.children.length > 0) result.children = nodesToJson(node.children);
+    return result;
+  });
+}
+
+/**
+ * Convert a single NodeElement to Markdown
+ *
+ * @param node - NodeElement to convert
+ * @returns Markdown string
+ */
+function nodeElementToMarkdown(node: NodeElement): string {
+  const children = node.children ? nodesToMarkdown(node.children) : '';
+
+  switch (node.tag) {
+    case 'h3':
+      return `\n# ${children}\n`;
+    case 'h4':
+      return `\n## ${children}\n`;
+    case 'p':
+      return `\n${children}\n`;
+    case 'b':
+    case 'strong':
+      return `**${children}**`;
+    case 'i':
+    case 'em':
+      return `*${children}*`;
+    case 'a':
+      return `[${children}](${node.attrs?.href || ''})`;
+    case 'img':
+      return `![image](${node.attrs?.src || ''})`;
+    case 'ul':
+    case 'ol':
+      return `\n${children}`;
+    case 'li':
+      return `- ${children}\n`;
+    case 'blockquote':
+      return `\n> ${children}\n`;
+    case 'code':
+      return `\`${children}\``;
+    case 'pre':
+      return `\n\`\`\`\n${children}\n\`\`\`\n`;
+    case 'br':
+      return '\n';
+    case 'hr':
+      return '\n---\n';
+    case 's':
+      return `~~${children}~~`;
+    case 'u':
+      return `__${children}__`;
+    case 'figure':
+      return children;
+    case 'figcaption':
+      return '';
+    case 'aside':
+      return `\n> ${children}\n`;
+    case 'video':
+    case 'iframe':
+      return `\n[${node.tag}](${node.attrs?.src || ''})\n`;
+    default:
+      return children;
+  }
+}
+
+/**
+ * Convert Telegraph Node array to Markdown format
+ *
+ * @param nodes - Array of Telegraph Node objects
+ * @returns Markdown string
+ */
+export function nodesToMarkdown(nodes: Node[]): string {
+  let markdown = '';
+  for (const node of nodes) {
+    if (typeof node === 'string') {
+      markdown += node;
+    } else {
+      markdown += nodeElementToMarkdown(node);
+    }
+  }
+  return markdown;
+}
+
+/**
+ * Convert a single NodeElement to HTML
+ *
+ * @param node - NodeElement to convert
+ * @returns HTML string
+ */
+function nodeElementToHtml(node: NodeElement): string {
+  const children = node.children ? nodesToHtml(node.children) : '';
+
+  // Self-closing tags
+  if (['br', 'hr', 'img'].includes(node.tag)) {
+    const attrs = node.attrs
+      ? ' ' + Object.entries(node.attrs)
+          .map(([key, value]) => `${key}="${value}"`)
+          .join(' ')
+      : '';
+    return `<${node.tag}${attrs}/>`;
+  }
+
+  // Tags with attributes
+  const attrs = node.attrs
+    ? ' ' + Object.entries(node.attrs)
+        .map(([key, value]) => `${key}="${value}"`)
+        .join(' ')
+    : '';
+
+  return `<${node.tag}${attrs}>${children}</${node.tag}>`;
+}
+
+/**
+ * Convert Telegraph Node array to HTML format
+ *
+ * @param nodes - Array of Telegraph Node objects
+ * @returns HTML string
+ */
+export function nodesToHtml(nodes: Node[]): string {
+  let html = '';
+  for (const node of nodes) {
+    if (typeof node === 'string') {
+      html += node;
+    } else {
+      html += nodeElementToHtml(node);
+    }
+  }
+  return html;
+}
