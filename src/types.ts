@@ -234,25 +234,3 @@ export interface GetViewsParams {
   /** Pass to get views for a specific hour (0-24) */
   hour?: number;
 }
-
-/**
- * Parameters for uploadImage method
- */
-export interface UploadImageParams {
-  /** Path to the image file (local file system) */
-  filePath?: string;
-  /** Base64-encoded image data */
-  base64?: string;
-  /** Content type of the image */
-  contentType?: 'image/jpeg' | 'image/png' | 'image/gif' | 'video/mp4';
-  /** Filename for the uploaded file */
-  filename?: string;
-}
-
-/**
- * Result of image upload
- */
-export interface UploadResult {
-  /** URL of the uploaded image on Telegraph */
-  url: string;
-}

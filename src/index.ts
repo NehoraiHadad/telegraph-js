@@ -34,8 +34,6 @@ export type {
   GetPageParams,
   GetPageListParams,
   GetViewsParams,
-  UploadImageParams,
-  UploadResult,
 } from './types.js';
 export { ALLOWED_TAGS } from './types.js';
 export {
